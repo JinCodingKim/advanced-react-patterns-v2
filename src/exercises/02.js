@@ -16,13 +16,30 @@ class Toggle extends React.Component {
   //    be able to accept `on`, `toggle`, and `children` as props.
   //    Note that they will _not_ have access to Toggle instance properties
   //    like `this.state.on` or `this.toggle`.
+
+  /* static On/Off/Button are all functional components with static
+     properties. It accepts props and renders something.
+     In this case, On will take in props.on and props.children ('The button is on') 
+     and render the props.children if props.on is true.
+     Likewise, Off will take in same props, and spit out props.children
+     if propson is false. 
+     Button will render Switch component passing in the props.on and 
+     props.toggle for handling the on/off button switch. */
+  static On = ({on, children}) => (on ? children : null)
+  static Off = ({on, children}) => (on ? null : children)
+  static Button = ({on, toggle}) => (
+    <Switch on={on} onClick={toggle} />
+  )
+
   state = {on: false}
   toggle = () =>
     this.setState(
       ({on}) => ({on: !on}),
       () => this.props.onToggle(this.state.on),
     )
+
   render() {
+    console.log(this.props.children)
     // we're trying to let people render the components they want within the Toggle component.
     // But the On, Off, and Button components will need access to the internal `on` state as
     // well as the internal `toggle` function for them to work properly. So here we can
@@ -33,8 +50,18 @@ class Toggle extends React.Component {
     // 2. React.cloneElement: https://reactjs.org/docs/react-api.html#cloneelement
     //
     // 🐨 you'll want to completely replace the code below with the above logic.
-    const {on} = this.state
-    return <Switch on={on} onClick={this.toggle} />
+
+    /* React.Children.map will map over the static children components,
+       and iterate through each one.
+       React.cloneElement will take in an element and pass props into it,
+       in this case, passing in the current state of on and toggle to each
+       static child component */
+    return React.Children.map(this.props.children, child =>
+      React.cloneElement(child, {
+        on: this.state.on,
+        toggle: this.toggle,
+      }),
+    )
   }
 }
 
